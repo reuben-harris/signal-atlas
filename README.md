@@ -47,7 +47,8 @@ Every row also stores `raw_payload` as `jsonb`.
 including the top-level `version`, `messageType`, and `data` object. This is
 intentional: normalized columns are only the fields we know we need today, while
 `raw_payload` lets us backfill new columns later without losing original message
-fields.
+fields. These payloads can contain device and location data, so application logs
+must not include full raw payloads by default.
 
 MQTT QoS 1 delivery is at-least-once, so duplicate delivery is expected. Inserts
 are idempotent using a key based on:
@@ -76,9 +77,36 @@ Important settings:
 - `MQTT_TOPIC_PREFIX`
 - `DATABASE_URL`
 - `DEBUG`
+- `LOG_FORMAT`
+- `INGEST_SUMMARY_INTERVAL_SECONDS`
+- `INGEST_RECORD_LOG_LEVEL`
 
 The local compose database listens on `localhost:15432` to avoid colliding with
 other local development databases.
+
+## Observability
+
+Runtime logs can be emitted as structured JSON or local-friendly text:
+
+```text
+LOG_FORMAT=json
+```
+
+The ingestor logs periodic `ingest_summary` events with counters for received,
+inserted, duplicate, parse-failed, and store-failed MQTT messages. Per-record
+details are available at the configured record log level:
+
+```text
+INGEST_RECORD_LOG_LEVEL=DEBUG
+```
+
+The default keeps production logs focused on summaries. To troubleshoot a live
+stream, temporarily set `DEBUG=true` or `INGEST_RECORD_LOG_LEVEL=INFO`.
+
+Raw MQTT JSON is intentionally stored in PostGIS, not emitted in logs. Logs
+include compact normalized fields and payload hashes for failed parses so that
+bad messages can be correlated without dumping location/device payloads into log
+storage.
 
 ## Local Development
 

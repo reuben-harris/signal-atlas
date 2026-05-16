@@ -37,6 +37,11 @@ class Settings(BaseSettings):
     mqtt_keepalive_seconds: int = Field(60, alias="MQTT_KEEPALIVE_SECONDS")
     database_url: str = Field(DEFAULT_DATABASE_URL, alias="DATABASE_URL")
     debug: bool = Field(False, alias="DEBUG")
+    log_format: str = Field("json", alias="LOG_FORMAT")
+    ingest_summary_interval_seconds: int = Field(
+        60, alias="INGEST_SUMMARY_INTERVAL_SECONDS"
+    )
+    ingest_record_log_level: str = Field("DEBUG", alias="INGEST_RECORD_LOG_LEVEL")
 
     @field_validator("mqtt_qos")
     @classmethod
@@ -44,6 +49,32 @@ class Settings(BaseSettings):
         if value not in {0, 1, 2}:
             raise ValueError("MQTT_QOS must be 0, 1, or 2")
         return value
+
+    @field_validator("log_format")
+    @classmethod
+    def validate_log_format(cls, value: str) -> str:
+        normalized = value.strip().lower()
+        if normalized not in {"json", "text"}:
+            raise ValueError("LOG_FORMAT must be json or text")
+        return normalized
+
+    @field_validator("ingest_summary_interval_seconds")
+    @classmethod
+    def validate_ingest_summary_interval_seconds(cls, value: int) -> int:
+        if value < 1:
+            raise ValueError("INGEST_SUMMARY_INTERVAL_SECONDS must be at least 1")
+        return value
+
+    @field_validator("ingest_record_log_level")
+    @classmethod
+    def validate_ingest_record_log_level(cls, value: str) -> str:
+        normalized = value.strip().upper()
+        if normalized not in {"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"}:
+            raise ValueError(
+                "INGEST_RECORD_LOG_LEVEL must be DEBUG, INFO, WARNING, ERROR, "
+                "or CRITICAL"
+            )
+        return normalized
 
     @property
     def mqtt_topic_prefix(self) -> str:

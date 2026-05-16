@@ -4,15 +4,13 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from app.config import Settings, get_settings
+from app.observability import configure_logging as configure_app_logging
 
 logger = logging.getLogger(__name__)
 
 
 def configure_logging(settings: Settings) -> None:
-    logging.basicConfig(
-        level=logging.DEBUG if settings.debug else logging.INFO,
-        format="%(asctime)s %(levelname)s %(name)s %(message)s",
-    )
+    configure_app_logging(debug=settings.debug, log_format=settings.log_format)
 
 
 @asynccontextmanager

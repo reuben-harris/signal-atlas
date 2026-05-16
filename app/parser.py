@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 from datetime import datetime
+from json import JSONDecodeError
 from typing import Any
 
 from app.config import CELLULAR_TOPIC_NAMES
@@ -111,7 +112,12 @@ def _load_payload(payload: bytes | str | dict[str, Any]) -> dict[str, Any]:
     else:
         if isinstance(payload, bytes):
             payload = payload.decode("utf-8")
-        loaded = json.loads(payload)
+        try:
+            loaded = json.loads(payload)
+        except JSONDecodeError as error:
+            raise NetworkSurveyParseError(
+                "Network Survey payload is not valid JSON"
+            ) from error
 
     if not isinstance(loaded, dict):
         raise NetworkSurveyParseError("Network Survey payload must be a JSON object")

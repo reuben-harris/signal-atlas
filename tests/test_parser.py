@@ -1,7 +1,9 @@
 import json
 from pathlib import Path
 
-from app.parser import parse_cellular_message
+import pytest
+
+from app.parser import NetworkSurveyParseError, parse_cellular_message
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
@@ -76,3 +78,8 @@ def test_parser_accepts_prefixed_topics():
 
     assert measurement.topic == "signal-atlas/lte_message"
     assert measurement.rat == "lte"
+
+
+def test_parser_reports_invalid_json_as_parse_error():
+    with pytest.raises(NetworkSurveyParseError, match="not valid JSON"):
+        parse_cellular_message("lte_message", "{")
