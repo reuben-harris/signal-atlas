@@ -12,7 +12,7 @@ license = { text = "AGPL-3.0-only" }
 authors = [{ name = "Reuben Harris" }]
 dependencies = [
   "fastapi>=0.115.0,<1.0.0",
-  "gunicorn>=25.3.0,<26.0.0",
+  "gunicorn>=26.0.0,<27.0.0",
   "paho-mqtt>=2.1.0,<3.0.0",
   "psycopg[binary]>=3.2.0,<4.0.0",
   "pydantic-settings>=2.8.0,<3.0.0",
