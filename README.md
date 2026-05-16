@@ -1,0 +1,154 @@
+# accessatlas-connector-network-survey
+
+**accessatlas-connector-network-survey** ingests Android Network Survey cellular
+MQTT messages and stores them in PostGIS for later Access Atlas map overlays and
+signal analysis.
+
+This service is ingestion-only for now. It does not serve heatmap tiles, GeoJSON,
+or Access Atlas API endpoints yet.
+
+## Data Flow
+
+```text
+Android Network Survey -> Mosquitto -> ingestor -> PostGIS
+```
+
+The ingestor subscribes to cellular MQTT topics with QoS 1:
+
+- `gsm_message`
+- `cdma_message`
+- `umts_message`
+- `lte_message`
+- `nr_message`
+
+## Stored Data
+
+Records are stored in the `cellular_measurements` table.
+
+The table contains normalized columns for common queries and future heatmap
+processing, including:
+
+- MQTT topic, Network Survey message type, and API version
+- device serial/name, mission ID, record number, group number, and device time
+- latitude/longitude plus a PostGIS `geometry(Point, 4326)` column
+- accuracy, location age, altitude, and speed where supplied
+- provider fields such as `provider`, `plmn`, `mcc`, and `mnc`
+- RAT and serving-cell flag
+- cell/tower/channel fields such as `tac`, `eci`, `nci`, `lac`, `cid`, `pci`,
+  `earfcn`, and `nrarfcn`
+- signal fields such as `rsrp`, `rsrq`, `snr`, `ss_rsrp`, `ss_rsrq`, and
+  `ss_sinr`
+
+### Raw JSON Preservation
+
+Every row also stores `raw_payload` as `jsonb`.
+
+`raw_payload` is the full original MQTT JSON envelope from Network Survey,
+including the top-level `version`, `messageType`, and `data` object. This is
+intentional: normalized columns are only the fields we know we need today, while
+`raw_payload` lets us backfill new columns later without losing original message
+fields.
+
+MQTT QoS 1 delivery is at-least-once, so duplicate delivery is expected. Inserts
+are idempotent using a key based on:
+
+```text
+topic + device_serial_number + mission_id + record_number
+```
+
+If one of those fields is missing, the ingestor falls back to a deterministic
+hash of the raw payload.
+
+## Configuration
+
+Copy `.env.example` to `.env` for local development:
+
+```bash
+cp .env.example .env
+```
+
+Important settings:
+
+- `MQTT_HOST`
+- `MQTT_PORT`
+- `MQTT_TLS`
+- `MQTT_CLIENT_ID`
+- `MQTT_TOPIC_PREFIX`
+- `DATABASE_URL`
+- `DEBUG`
+
+The local compose database listens on `localhost:15432` to avoid colliding with
+other Access Atlas development databases.
+
+## Local Development
+
+Start local PostGIS and Mosquitto:
+
+```bash
+docker compose up -d postgis mosquitto
+```
+
+Install dependencies:
+
+```bash
+uv sync --dev
+```
+
+Run the ingestor:
+
+```bash
+uv run python -m app.ingest
+```
+
+Publish a fixture in another terminal:
+
+```bash
+uv run python -m app.tools.publish_fixture tests/fixtures/lte_serving.json --topic lte_message
+```
+
+Local fixture flow:
+
+```text
+tests/fixtures/lte_serving.json -> publish_fixture.py -> Mosquitto -> ingestor -> PostGIS
+```
+
+Run the health endpoint locally:
+
+```bash
+uv run python -m app.run
+```
+
+The health endpoint is:
+
+```text
+GET /healthz
+```
+
+## Tests
+
+```bash
+uv run pytest
+uv run ruff check .
+uv run ruff format --check .
+uv run python -m compileall app tests
+```
+
+## Container
+
+Build locally:
+
+```bash
+docker build -t accessatlas-connector-network-survey .
+```
+
+Run the API process:
+
+```bash
+docker run --rm -p 8000:8000 --env-file .env accessatlas-connector-network-survey
+```
+
+Run the ingestor process:
+
+```bash
+docker run --rm --env-file .env accessatlas-connector-network-survey python -m app.ingest
+```

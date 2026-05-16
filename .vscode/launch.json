@@ -1,0 +1,38 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "FastAPI",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "app.run",
+      "env": {
+        "PORT": "8001",
+        "LOG_LEVEL": "info"
+      },
+      "envFile": "${workspaceFolder}/.env",
+      "jinja": true
+    },
+    {
+      "name": "Ingestor",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "app.ingest",
+      "envFile": "${workspaceFolder}/.env",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Publish LTE Fixture",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "app.tools.publish_fixture",
+      "args": [
+        "${workspaceFolder}/tests/fixtures/lte_serving.json",
+        "--topic",
+        "lte_message"
+      ],
+      "envFile": "${workspaceFolder}/.env",
+      "console": "integratedTerminal"
+    }
+  ]
+}

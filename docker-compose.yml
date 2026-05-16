@@ -1,0 +1,32 @@
+services:
+  postgis:
+    image: postgis/postgis:18-3.6-alpine
+    environment:
+      POSTGRES_DB: network_survey
+      POSTGRES_USER: network_survey
+      POSTGRES_PASSWORD: network_survey
+    ports:
+      - "15432:5432"
+    volumes:
+      - postgis18_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U network_survey -d network_survey"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  mosquitto:
+    image: eclipse-mosquitto:2.0.22
+    command: ["mosquitto", "-c", "/tmp/mosquitto.conf"]
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./docker/mosquitto/mosquitto.conf:/tmp/mosquitto.conf:ro,Z
+    healthcheck:
+      test: ["CMD-SHELL", "mosquitto_sub -h localhost -p 1883 -t '$$SYS/#' -C 1 -W 3 >/dev/null 2>&1 || true"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgis18_data:

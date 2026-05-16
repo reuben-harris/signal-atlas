@@ -1,0 +1,24 @@
+{
+  "version": "2.3.0",
+  "messageType": "LteRecord",
+  "data": {
+    "deviceSerialNumber": "test-device-001",
+    "deviceName": "TestPhone",
+    "deviceTime": "2026-05-16T22:25:50.447803+12:00",
+    "latitude": -41.3407129,
+    "longitude": 174.775847,
+    "altitude": 54.62355,
+    "missionId": "NS test-device-001 20260515-110926",
+    "recordNumber": 74546,
+    "groupNumber": 24496,
+    "accuracy": 100,
+    "locationAge": 9629,
+    "earfcn": 1600,
+    "pci": 169,
+    "rsrp": -111.0,
+    "rsrq": -11.0,
+    "ta": 0,
+    "servingCell": false,
+    "provider": "Spark NZ"
+  }
+}

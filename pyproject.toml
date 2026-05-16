@@ -1,0 +1,52 @@
+[build-system]
+requires = ["setuptools>=82.0.1", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "accessatlas-connector-network-survey"
+version = "0.1.0"
+description = "Ingest Android Network Survey cellular MQTT telemetry for Access Atlas."
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "AGPL-3.0-only" }
+authors = [{ name = "Reuben Harris" }]
+dependencies = [
+  "fastapi>=0.115.0,<1.0.0",
+  "gunicorn>=25.3.0,<26.0.0",
+  "paho-mqtt>=2.1.0,<3.0.0",
+  "psycopg[binary]>=3.2.0,<4.0.0",
+  "pydantic-settings>=2.8.0,<3.0.0",
+  "uvicorn[standard]>=0.46.0,<0.47.0",
+]
+
+[dependency-groups]
+dev = [
+  "pytest>=9.0.3,<10.0.0",
+  "ruff>=0.15.12,<0.16.0",
+]
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+
+[tool.ruff.lint]
+select = [
+  "E",
+  "F",
+  "I",
+  "B",
+  "UP",
+]
+
+[tool.ruff.lint.flake8-bugbear]
+extend-immutable-calls = ["fastapi.Depends", "fastapi.Header"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
