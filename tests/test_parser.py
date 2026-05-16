@@ -70,9 +70,9 @@ def test_parser_preserves_raw_payload():
 
 def test_parser_accepts_prefixed_topics():
     measurement = parse_cellular_message(
-        "network-survey/lte_message",
+        "signal-atlas/lte_message",
         load_fixture("lte_serving.json"),
     )
 
-    assert measurement.topic == "network-survey/lte_message"
+    assert measurement.topic == "signal-atlas/lte_message"
     assert measurement.rat == "lte"

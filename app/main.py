@@ -21,7 +21,7 @@ async def lifespan(_: FastAPI):
     yield
 
 
-app = FastAPI(title="Access Atlas Network Survey Connector", lifespan=lifespan)
+app = FastAPI(title="Signal Atlas", lifespan=lifespan)
 
 
 @app.get("/healthz")

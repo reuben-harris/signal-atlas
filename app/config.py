@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     mqtt_port: int = Field(1883, alias="MQTT_PORT")
     mqtt_tls: bool = Field(False, alias="MQTT_TLS")
     mqtt_client_id: str = Field(
-        "accessatlas-network-survey-ingestor",
+        "signal-atlas-ingestor",
         alias="MQTT_CLIENT_ID",
     )
     mqtt_username: str = Field("", alias="MQTT_USERNAME")

@@ -1,19 +1,19 @@
-# accessatlas-connector-network-survey
+# signal-atlas
 
-**accessatlas-connector-network-survey** ingests Android Network Survey cellular
-MQTT messages and stores them in PostGIS for later Access Atlas map overlays and
-signal analysis.
+**signal-atlas** ingests cellular signal telemetry and stores it in PostGIS for
+later map overlays, vector tiles, and signal analysis.
 
 This service is ingestion-only for now. It does not serve heatmap tiles, GeoJSON,
-or Access Atlas API endpoints yet.
+or map rendering endpoints yet.
 
 ## Data Flow
 
 ```text
-Android Network Survey -> Mosquitto -> ingestor -> PostGIS
+Android Network Survey -> Mosquitto -> Signal Atlas ingestor -> PostGIS
 ```
 
-The ingestor subscribes to cellular MQTT topics with QoS 1:
+The ingestor currently supports Android Network Survey cellular MQTT topics with
+QoS 1:
 
 - `gsm_message`
 - `cdma_message`
@@ -28,7 +28,7 @@ Records are stored in the `cellular_measurements` table.
 The table contains normalized columns for common queries and future heatmap
 processing, including:
 
-- MQTT topic, Network Survey message type, and API version
+- MQTT topic, source message type, and API version
 - device serial/name, mission ID, record number, group number, and device time
 - latitude/longitude plus a PostGIS `geometry(Point, 4326)` column
 - accuracy, location age, altitude, and speed where supplied
@@ -78,7 +78,7 @@ Important settings:
 - `DEBUG`
 
 The local compose database listens on `localhost:15432` to avoid colliding with
-other Access Atlas development databases.
+other local development databases.
 
 ## Local Development
 
@@ -138,17 +138,17 @@ uv run python -m compileall app tests
 Build locally:
 
 ```bash
-docker build -t accessatlas-connector-network-survey .
+docker build -t signal-atlas .
 ```
 
 Run the API process:
 
 ```bash
-docker run --rm -p 8000:8000 --env-file .env accessatlas-connector-network-survey
+docker run --rm -p 8000:8000 --env-file .env signal-atlas
 ```
 
 Run the ingestor process:
 
 ```bash
-docker run --rm --env-file .env accessatlas-connector-network-survey python -m app.ingest
+docker run --rm --env-file .env signal-atlas python -m app.ingest
 ```

@@ -2,9 +2,9 @@
 
 ## Project Summary
 
-This repository contains `accessatlas-connector-network-survey`, a small Python
-service for ingesting Android Network Survey cellular MQTT messages into PostGIS
-for later Access Atlas map overlays and signal analysis.
+This repository contains `signal-atlas`, a small Python service for ingesting
+cellular signal telemetry into PostGIS for later map overlays, vector tiles, and
+signal analysis.
 
 Current project expectations:
 
@@ -34,8 +34,8 @@ Rules:
 - keep inserts idempotent because MQTT QoS 1 can redeliver messages
 - use `topic + device_serial_number + mission_id + record_number` as the normal
   idempotency basis
-- do not add heatmap APIs, vector tiles, rollups, or Access Atlas frontend
-  integration unless explicitly requested
+- do not add heatmap APIs, vector tiles, rollups, or frontend integration unless
+  explicitly requested
 
 ## Working Rules
 
@@ -54,7 +54,7 @@ uv run pytest
 uv run ruff check .
 uv run ruff format --check .
 uv run python -m compileall app tests
-docker build -t accessatlas-connector-network-survey .
+docker build -t signal-atlas .
 ```
 
 Notes:

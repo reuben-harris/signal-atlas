@@ -1,1 +1,1 @@
-"""Access Atlas Network Survey connector."""
+"""Signal Atlas telemetry ingestion service."""
