@@ -1,5 +1,10 @@
 from app.models import CellularMeasurement
-from app.processing import signal_metric_for_measurement, signal_quality_bucket
+from app.processing import (
+    GRID_SIZES_METERS,
+    grid_size_values_sql,
+    signal_metric_for_measurement,
+    signal_quality_bucket,
+)
 
 
 def make_measurement(**fields) -> CellularMeasurement:
@@ -61,3 +66,10 @@ def test_signal_quality_bucket_thresholds():
     assert signal_quality_bucket(-106.0) == "fair"
     assert signal_quality_bucket(-116.0) == "poor"
     assert signal_quality_bucket(None) == "unknown"
+
+
+def test_grid_size_values_match_cellmapper_style_tiers():
+    assert GRID_SIZES_METERS == (10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000)
+    assert grid_size_values_sql() == (
+        "(10), (25), (50), (100), (250), (500), (1000), (2500), (5000), (10000)"
+    )

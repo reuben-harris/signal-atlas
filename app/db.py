@@ -276,11 +276,25 @@ def insert_measurement(
 
 
 def signal_grid_size_for_zoom(zoom: int) -> int:
+    if zoom < 6:
+        return 10000
+    if zoom < 8:
+        return 5000
+    if zoom < 9:
+        return 2500
     if zoom < 11:
         return 1000
-    if zoom < 14:
+    if zoom < 12:
+        return 500
+    if zoom < 13:
         return 250
-    return 100
+    if zoom < 14:
+        return 100
+    if zoom < 15:
+        return 50
+    if zoom < 16:
+        return 25
+    return 10
 
 
 def get_signal_options(connection: Connection) -> dict[str, Any]:

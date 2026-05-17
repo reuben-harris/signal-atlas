@@ -169,22 +169,22 @@
       </div>
       <div class="legend" aria-label="Signal quality legend">
         <div class="legend-row">
-          <span class="swatch" style="background: #1a9850"></span>
+          <span class="swatch" style="background: #00b51a"></span>
           <span>Excellent</span>
           <span>&ge; -85 dBm</span>
         </div>
         <div class="legend-row">
-          <span class="swatch" style="background: #91cf60"></span>
+          <span class="swatch" style="background: #65d928"></span>
           <span>Good</span>
           <span>-100 to -85</span>
         </div>
         <div class="legend-row">
-          <span class="swatch" style="background: #fdae61"></span>
+          <span class="swatch" style="background: #f0d300"></span>
           <span>Fair</span>
           <span>-110 to -100</span>
         </div>
         <div class="legend-row">
-          <span class="swatch" style="background: #d73027"></span>
+          <span class="swatch" style="background: #f0441f"></span>
           <span>Poor</span>
           <span>&lt; -110</span>
         </div>
@@ -196,14 +196,14 @@
         "match",
         ["get", "quality_bucket"],
         "excellent",
-        "#1a9850",
+        "#00b51a",
         "good",
-        "#91cf60",
+        "#65d928",
         "fair",
-        "#fdae61",
+        "#f0d300",
         "poor",
-        "#d73027",
-        "#7b8790",
+        "#f0441f",
+        "#4f5b46",
       ];
 
       const baseStyle = {
@@ -342,8 +342,9 @@
           source: "signal-atlas",
           "source-layer": "signal_cells",
           paint: {
+            "fill-antialias": false,
             "fill-color": signalColors,
-            "fill-opacity": 0.58,
+            "fill-opacity": ["interpolate", ["linear"], ["zoom"], 4, 0.78, 16, 0.66],
           },
         });
 
@@ -353,9 +354,9 @@
           source: "signal-atlas",
           "source-layer": "signal_cells",
           paint: {
-            "line-color": "#172026",
-            "line-opacity": 0.22,
-            "line-width": 0.6,
+            "line-color": "#203020",
+            "line-opacity": ["interpolate", ["linear"], ["zoom"], 6, 0, 13, 0.1, 16, 0.2],
+            "line-width": ["interpolate", ["linear"], ["zoom"], 6, 0, 13, 0.35, 16, 0.7],
           },
         });
 

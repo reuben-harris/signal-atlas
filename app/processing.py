@@ -9,7 +9,7 @@ from app.models import CellularMeasurement
 PROCESSOR_STATE_NAME = "signal_grid_cells"
 PROCESSOR_BATCH_SIZE = 1000
 PROCESSOR_POLL_INTERVAL_SECONDS = 10
-GRID_SIZES_METERS = (100, 250, 1000)
+GRID_SIZES_METERS = (10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000)
 
 
 @dataclass(frozen=True)
@@ -73,6 +73,47 @@ def ensure_processing_state(connection: Connection) -> None:
             """,
             (PROCESSOR_STATE_NAME,),
         )
+
+
+def grid_size_values_sql() -> str:
+    return ", ".join(f"({grid_size_m})" for grid_size_m in GRID_SIZES_METERS)
+
+
+def get_materialized_grid_sizes(connection: Connection) -> tuple[int, ...]:
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT DISTINCT grid_size_m
+            FROM signal_grid_cells
+            ORDER BY grid_size_m
+            """
+        )
+        rows = cursor.fetchall()
+    return tuple(int(row[0]) for row in rows)
+
+
+def reset_signal_grid_processing(connection: Connection) -> None:
+    with connection.transaction():
+        with connection.cursor() as cursor:
+            cursor.execute("TRUNCATE TABLE signal_grid_cells")
+            cursor.execute(
+                """
+                INSERT INTO signal_processing_state (name, last_measurement_id)
+                VALUES (%s, 0)
+                ON CONFLICT (name)
+                DO UPDATE SET last_measurement_id = 0,
+                              updated_at = now()
+                """,
+                (PROCESSOR_STATE_NAME,),
+            )
+
+
+def ensure_configured_grid_tiers(connection: Connection) -> bool:
+    materialized_sizes = get_materialized_grid_sizes(connection)
+    if materialized_sizes and set(materialized_sizes) != set(GRID_SIZES_METERS):
+        reset_signal_grid_processing(connection)
+        return True
+    return False
 
 
 def get_last_processed_measurement_id(connection: Connection) -> int:
@@ -149,7 +190,7 @@ def upsert_signal_grid_cells(
 ) -> ProcessingResult:
     with connection.cursor() as cursor:
         cursor.execute(
-            """
+            f"""
             WITH selected AS (
                 SELECT *
                 FROM cellular_measurements
@@ -195,7 +236,7 @@ def upsert_signal_grid_cells(
             ),
             grids AS (
                 SELECT grid_size_m
-                FROM (VALUES (100), (250), (1000)) AS sizes(grid_size_m)
+                FROM (VALUES {grid_size_values_sql()}) AS sizes(grid_size_m)
             ),
             bucketed AS (
                 SELECT

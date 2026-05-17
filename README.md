@@ -72,7 +72,7 @@ Cells are grouped by:
 - provider
 - RAT (`gsm`, `cdma`, `umts`, `lte`, `nr`)
 - metric name
-- fixed grid tier
+- fixed grid tier from 10 m to 10 km
 
 The map never mixes RATs in one rendered quality layer. Signal quality uses a
 dBm-like metric per RAT:
@@ -90,6 +90,11 @@ uv run python -m app.process
 
 It processes new rows by increasing measurement ID and stores aggregate values
 such as average dBm, sample count, and quality bucket.
+
+The tile endpoint selects coarser grid tiers for country and regional zooms,
+then steps down to finer tiers near street level so the overlay keeps a
+CellMapper-style square trace instead of collapsing to points or growing into
+large blocks.
 
 ## Configuration
 
