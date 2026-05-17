@@ -26,7 +26,10 @@ def configure_logging(settings: Settings) -> None:
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    configure_logging(get_settings())
+    settings = get_settings()
+    configure_logging(settings)
+    with get_connection(settings) as connection:
+        ensure_schema(connection)
     yield
 
 
@@ -81,7 +84,6 @@ async def signal_tilejson(request: Request) -> dict[str, Any]:
 async def signal_options() -> dict[str, Any]:
     settings = get_settings()
     with get_connection(settings) as connection:
-        ensure_schema(connection)
         return get_signal_options(connection)
 
 
@@ -96,7 +98,6 @@ async def signal_tile(
     validate_tile_coordinates(zoom=zoom, tile_x=tile_x, tile_y=tile_y)
     settings = get_settings()
     with get_connection(settings) as connection:
-        ensure_schema(connection)
         tile = get_signal_tile(
             connection,
             zoom=zoom,
