@@ -1,15 +1,17 @@
 # signal-atlas
 
-**signal-atlas** ingests cellular signal telemetry and stores it in PostGIS for
-later map overlays, vector tiles, and signal analysis.
+**signal-atlas** ingests cellular signal telemetry, processes it into
+provider/RAT signal-quality grid cells, and renders those cells on a MapLibre GL
+JS map.
 
-This service is ingestion-only for now. It does not serve heatmap tiles, GeoJSON,
-or map rendering endpoints yet.
+V0 is a full-stack spike. It keeps the Python service intentionally small while
+proving the end-to-end shape that can later be split or rewritten in Rust.
 
 ## Data Flow
 
 ```text
 Android Network Survey -> Mosquitto -> Signal Atlas ingestor -> PostGIS
+    -> Signal Atlas processor -> MVT tiles -> MapLibre GL JS
 ```
 
 The ingestor currently supports Android Network Survey cellular MQTT topics with
@@ -59,6 +61,35 @@ topic + device_serial_number + mission_id + record_number
 
 If one of those fields is missing, the ingestor falls back to a deterministic
 hash of the raw payload.
+
+## Processed Signal Grid
+
+The processor turns new raw measurements into square PostGIS grid cells in
+`signal_grid_cells`.
+
+Cells are grouped by:
+
+- provider
+- RAT (`gsm`, `cdma`, `umts`, `lte`, `nr`)
+- metric name
+- fixed grid tier
+
+The map never mixes RATs in one rendered quality layer. Signal quality uses a
+dBm-like metric per RAT:
+
+- LTE: `rsrp`
+- NR: `ss_rsrp`, then `csi_rsrp`, then `rsrp`
+- UMTS: `rscp`
+- GSM/CDMA: `rssi`, then `signal_strength`
+
+The processor is a long-running worker:
+
+```bash
+uv run python -m app.process
+```
+
+It processes new rows by increasing measurement ID and stores aggregate values
+such as average dBm, sample count, and quality bucket.
 
 ## Configuration
 
@@ -140,17 +171,30 @@ Local fixture flow:
 tests/fixtures/lte_serving.json -> publish_fixture.py -> Mosquitto -> ingestor -> PostGIS
 ```
 
-Run the health endpoint locally:
+Run the processor:
+
+```bash
+uv run python -m app.process
+```
+
+Run the health endpoint and map locally:
 
 ```bash
 uv run python -m app.run
 ```
 
-The health endpoint is:
+Endpoints:
 
 ```text
+GET /
 GET /healthz
+GET /api/signal/options
+GET /tilejson/signal.json
+GET /tiles/signal/{z}/{x}/{y}.mvt
 ```
+
+The map at `/` uses MapLibre GL JS, an OSM-derived vector basemap, and the local
+Signal Atlas MVT overlay.
 
 ## Tests
 
@@ -179,4 +223,10 @@ Run the ingestor process:
 
 ```bash
 docker run --rm --env-file .env signal-atlas python -m app.ingest
+```
+
+Run the processor process:
+
+```bash
+docker run --rm --env-file .env signal-atlas python -m app.process
 ```
