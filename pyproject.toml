@@ -16,7 +16,7 @@ dependencies = [
   "paho-mqtt>=2.1.0,<3.0.0",
   "psycopg[binary]>=3.2.0,<4.0.0",
   "pydantic-settings>=2.8.0,<3.0.0",
-  "uvicorn[standard]>=0.46.0,<0.47.0",
+  "uvicorn[standard]>=0.48.0,<0.49.0",
 ]
 
 [dependency-groups]
